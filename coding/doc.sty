@@ -1,0 +1,487 @@
+
+\documentclass[11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[a4paper, margin=0.6in]{geometry}
+\usepackage{booktabs}
+\usepackage{anyfontsize}
+\usepackage{graphicx}
+\usepackage{matlab-prettifier}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
+\usepackage{amsmath}
+\usepackage{subcaption} % for subfigures
+\usepackage{xcolor}
+\usepackage{listings}
+\usepackage{multicol}
+\usepackage{wrapfig}
+
+
+% Define colors for code
+\definecolor{keywordcolor}{rgb}{0.0, 0.0, 0.5}
+\definecolor{commentcolor}{rgb}{0.0, 0.5, 0.0}
+\definecolor{stringcolor}{rgb}{0.5, 0.0, 0.0}
+
+\lstset{
+    language=Python,
+    backgroundcolor=\color{white},
+    basicstyle=\ttfamily\footnotesize,
+    keywordstyle=\color{keywordcolor},
+    commentstyle=\color{commentcolor},
+    stringstyle=\color{stringcolor},
+    numbers=left,
+    numberstyle=\tiny,
+    stepnumber=1,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    frame=single
+}
+
+\title{DC II}
+\author{Jaliya Nimantha}
+\date{\today}
+\begin{document}
+\thispagestyle{empty}
+\begin{center}
+   
+   \vspace*{2cm}
+   \includegraphics[width=5cm]{University_of_Moratuwa_logo.png}
+   
+   \vspace{1cm}
+   Department of Electronic and Telecommunication Engineering \\
+   University of Moratuwa \\
+   \vspace{1cm}
+  
+   {\fontsize{16}{20}\selectfont\textbf{Assignment 01:\\ Intensity Transformations and Neighborhood Filtering}}
+   \vspace{1cm}
+
+   210294N - Kodithuwakku J.N 
+   \vspace{9cm}
+ 
+
+This assignment is submitted in partial fulfillment of the requirements for\\ \textbf{EN3160 - Image Processing and Machine Vision} module.
+   \\ \today
+   
+\end{center}
+\newpage
+
+\section*{Question 1}
+In the given intensity transformation, pixel values between 50 and 150 increase, while the others remain unchanged.
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{output.png}
+    \caption{}
+    \label{fig:enter-label}
+\end{figure}
+
+\begin{lstlisting}
+# Define the transformation
+transform1 = np.concatenate((np.linspace(0, 50, 50), 
+np.linspace(100, 255, 100), np.linspace(150, 255,106)), axis=0)
+        .astype(np.uint8)
+# Apply the transformation
+image_transformed = cv.LUT(image_orig, transform1)
+\end{lstlisting}
+
+\section*{Question 2}
+In this process, two linear transformations were applied to distinctly enhance the white and gray matter from the original image. The threshold values were determined using a trial-and-error approach, where various values were tested until a significant emphasis on the white and gray matter was achieved. Initially, values ranging from 0 to 255 were selected to isolate the desired color range, followed by the removal of the unwanted linear region. This approach started with a basic unity transformation.
+
+\begin{itemize}
+    \item \textbf{White Matter Region}: 175 -- 255
+    \item \textbf{Gray Matter Region}: 138 -- 180
+\end{itemize}
+
+\begin{figure}[H]
+    \centering
+    % Subfigure for the Original Image L Channel Histogram
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{output1.png}
+        \caption{}
+        \label{fig:original_L}
+    \end{subfigure}
+    \hfill
+    % Subfigure for the Gamma-Corrected Image L Channel Histogram
+    \begin{subfigure}[b]{0.45\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{output2.png}
+        \caption{}
+        \label{fig:corrected_L}
+    \end{subfigure}
+
+    \caption{}
+    \label{fig:L_channel_histograms}
+\end{figure}
+
+\begin{lstlisting}
+transform3 = np.concatenate((np.linspace(0, 0, 135), 
+    np.linspace(190, 210, 45),np.linspace(0, 0, 76)), axis=0).
+        astype(np.uint8)
+fig2 = cv.imread("a1images/brain_proton_density_slice.png", 
+    cv.IMREAD_GRAYSCALE)
+fig2_transformed_1 = cv.LUT(fig2, transform3)
+\end{lstlisting}
+    
+
+\section*{Question 3}
+In this question a gamma correction ($\gamma = 0.8$) has been performed on the L plane of the given image after converting it to the L*a*b* colour space. Results are shown in figure 4.
+
+
+\begin{wrapfigure}{l}{0.6\textwidth} % 'l' for left, adjust width as needed
+    \centering
+    \includegraphics[width=0.9\linewidth]{output4.png}
+    \caption{}
+    \label{fig:enter-label}
+\end{wrapfigure}
+
+In the L*a*b color space, L represents the pixel's lightness. Based on Equation, applying a gamma value less than 1 results in an increased L value compared to the original. As a result, the gamma-corrected image appears brighter, enhancing the visibility of darker areas, such as rock hollows, and giving them a more appealing look.
+
+\begin{equation}
+    \text{new L value} = 255 \left( \frac{\text{current L value}}{255} \right)^{0.8}
+\end{equation}
+
+This can also be represented using the histograms of the two versions of the image. We can observe in figure 5, after the gamma correction, the histogram has moved slightly to the right, storing more pixels in the right-most bins.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.7\linewidth]{output6.png}
+    \caption{Histogram of L chanel}
+    \label{fig:enter-label}
+\end{figure}
+
+
+  \begin{lstlisting}
+# Convert the image into CEILAB color space
+CEILAB_image = cv.cvtColor(original_image, cv.COLOR_BGR2Lab) 
+# Split the converted image into three channels         
+L_chanel, a_channel, b_channel = cv.split(CEILAB_image)  
+
+# Apply gamma correction to the L channel of the image
+gamma = 0.8
+table = np.array([(i/255.0)**(gamma)*255.0 
+    for i in np.arange(0, 256)]).astype('uint8')
+L_chanel_gamma_corrected = cv.LUT(L_chanel, table)    
+
+# Merge L channel with other channels
+img_gamma = cv.merge((L_chanel_gamma_corrected, a_channel, b_channel))     
+img_corrected = cv.cvtColor(img_gamma, cv.COLOR_Lab2RGB)
+
+    \end{lstlisting}
+\newpage
+\section*{Question 4}
+A beautifully pleasing result is achieved when the value of 'a' is within the range of 0.5 to 0.75
+
+\begin{figure}[H]
+    \centering
+    % Subfigure for the Original Image L Channel Histogram
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{image1.png}
+        \label{fig:original_L}
+    \end{subfigure}
+    \hfill
+    % Subfigure for the Gamma-Corrected Image L Channel Histogram
+    \begin{subfigure}[b]{0.4\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{image2.png}
+        \label{fig:corrected_L}
+    \end{subfigure}
+
+    \caption{}
+    \label{fig:L_channel_histograms}
+\end{figure}
+
+\begin{lstlisting}
+def vibrance(x, a, sigma=70):
+    # Transformfunction
+    return int(min(x + (a*128)*np.exp((-(x-128)**2)/(2*(sigma**2))), 255))  
+
+def transform(a,image):
+    table = np.array([vibrance(x, a) for x in np.arange(0, 256)])
+        .astype('uint8')
+    # Split the image 
+    h_channel, s_channel, v_channel = cv.split(image) 
+    # Apply vibrance correction to the saturation plane 
+    s_channel_corrected = cv.LUT(s_channel, table)          
+    img_corrected = cv.merge((h_channel, s_channel_corrected, v_channel)) 
+    # Merge corrected plane   
+    img_corrected_rgb = cv.cvtColor(img_corrected, cv.COLOR_HSV2RGB)
+    # plot the images.....
+\end{lstlisting}
+\section*{Question 5}
+In the custom equalization method, the image's histogram is first computed, followed by the calculation and normalization of the CDF. The intensity values are then mapped to the 0-255 range. Afterward, the new intensities are added to a table, which is reshaped to match the original image's dimensions. However, this custom approach may produce different results compared to OpenCV's built-in histogram equalization function (cv.equalizeHist()). Here, both the original histogram and the results from OpenCV's built-in equalization, as well as the custom method, in Figure 6.\\
+
+  \begin{lstlisting}
+#Define the manual histogram equalization function
+def histogram_equalization(image):
+    hist, bins = np.histogram(image.ravel(), 256, [0, 256])
+    cdf = hist.cumsum()
+    cdf_normalized = (cdf - cdf.min()) * 255 / (cdf.max() - cdf.min())
+    cdf_normalized = cdf_normalized.astype('uint8')
+    equalized = cdf_normalized[image]
+    return equalized
+
+    \end{lstlisting}
+\begin{figure}[H]
+    \centering
+    % Subfigure for the Original Image L Channel Histogram
+    \begin{subfigure}[b]{0.6\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{output17.png}
+        \label{fig:original_L}
+    \end{subfigure}
+    \hfill
+    % Subfigure for the Gamma-Corrected Image L Channel Histogram
+    \begin{subfigure}[b]{0.3\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{output18.png}
+        \label{fig:corrected_L}
+    \end{subfigure}
+
+    \caption{}
+    \label{fig:L_channel_histograms}
+\end{figure}
+
+\section*{Question 6}
+
+Here the threshold was set to 165 
+\begin{lstlisting}
+img_hsv = cv.cvtColor(jennifer_image, cv.COLOR_BGR2HSV)       
+h_channel, s_channel, v_channel = cv.split(img_hsv)    
+# Select a threshold value randomly
+threshold = 165
+
+# Apply thresholding on three channels seperately
+ret1, foreground_mask1 = cv.threshold(h_channel, threshold, 255, 
+    cv.THRESH_BINARY)
+ret2, foreground_mask2 = cv.threshold(s_channel, threshold, 255, 
+    cv.THRESH_BINARY)
+ret3, foreground_mask3 = cv.threshold(v_channel, threshold, 255, 
+    cv.THRESH_BINARY)
+# Obtain the foreground using the mask from the value channel
+foreground_img = cv.bitwise_and(jennifer_image, jennifer_image, 
+    mask=foreground_mask3)# Calculate histograms for the foreground 
+b_hist = cv.calcHist([foreground_img], [0], foreground_mask3, [256], [0, 256])
+g_hist = cv.calcHist([foreground_img], [1], foreground_mask3, [256], [0, 256])
+r_hist = cv.calcHist([foreground_img], [2], foreground_mask3, [256], [0, 256])
+# Obtain the culmulative sum of the histogram
+cumulative_hist_b = np.cumsum(b_hist)
+cumulative_hist_g = np.cumsum(g_hist)
+cumulative_hist_r = np.cumsum(r_hist)
+# Histogram equalization for three color channels
+r_equalized = cv.equalizeHist(foreground_img[:, :, 0])
+g_equalized = cv.equalizeHist(foreground_img[:, :, 1])
+b_equalized = cv.equalizeHist(foreground_img[:, :, 2])
+
+# Merge the equalized channels
+equalized_img = cv.merge((r_equalized, g_equalized, b_equalized))
+
+# Calculate the histograms for channels
+r_equalized_hist = cv.calcHist([equalized_img], [0], None, [256], [0, 256])
+g_equalized_hist = cv.calcHist([equalized_img], [1], None, [256], [0, 256])
+b_equalized_hist = cv.calcHist([equalized_img], [2], None, [256], [0, 256])
+
+# Calculate the CDF for equalized channels
+r_cumulative = np.cumsum(r_equalized_hist)
+g_cumulative = np.cumsum(g_equalized_hist)
+b_cumulative = np.cumsum(b_equalized_hist)# Extract the background by bitwise_not
+background = cv.bitwise_and(jennifer_image, jennifer_image, 
+    mask=cv.bitwise_not(foreground_mask3))
+
+final_modified_img = cv.add(background, equalized_img)
+final_modified_img_rgb = cv.cvtColor(final_modified_img, cv.COLOR_BGR2RGB)
+\end{lstlisting}
+ \begin{figure}[H]
+        \centering
+        \begin{subfigure}[b]{0.45\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{output0178.png}
+            \caption{Split it into hue, saturation, and values }
+            \label{fig:sub1}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{0.45\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{output01789.png}
+            \caption{Obtain the foreground}
+            \label{fig:sub2}
+        \end{subfigure}
+        
+        \vspace{1em}
+        
+        \begin{subfigure}[b]{0.45\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{output85.png}
+            \caption{Cumulative sum of the histogram }
+            \label{fig:sub3}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{0.45\textwidth}
+            \centering
+            \includegraphics[width=\textwidth]{output789.png}
+            \caption{Extract the background and add with the histogram equalized foreground.}
+            \label{fig:sub4}
+        \end{subfigure}
+        \caption{}
+        \label{fig:main}
+    \end{figure}
+\section*{Question 7}
+
+\begin{lstlisting}
+def sobel_filter(img):
+    # Sobel x and y kernels
+    sobel_x = np.array([[1, 0, -1],[2, 0, -2],[1, 0, -1]])
+    sobel_y = np.array([[1, 2, 1],[0, 0, 0],[-1, -2, -1]])
+    # Get image dimensions
+    rows, cols = img.shape
+    # Initialize output images for x and y direction filters
+    filtered_x = np.zeros_like(img, dtype=np.float64)
+    filtered_y = np.zeros_like(img, dtype=np.float64)
+    # Apply convolution
+    for i in range(1, rows-1):
+        for j in range(1, cols-1):
+            # Extracting the 3x3 region around each pixel
+            region = img[i-1:i+2, j-1:j+2]
+            
+            # Convolution with sobel_x and sobel_y
+            filtered_x[i, j] = np.sum(region * sobel_x)
+            filtered_y[i, j] = np.sum(region * sobel_y)
+    # Combine gradients
+    sobel_combined = np.sqrt(np.square(filtered_x) 
+        + np.square(filtered_y))
+
+    return filtered_x, filtered_y, sobel_combined
+\end{lstlisting}
+    
+\begin{itemize}
+        \item Here, the \texttt{openCV filter2D} function was used to carry out the Sobel filter on the Einstein image. Sobel kernels detect the edges of a given image. As can be observed in Figure~\ref{fig:single-image}, the Sobel vertical kernel detects horizontal edges, while the Sobel horizontal kernel detects vertical edges.
+
+        \item A manual Python function was written to carry out the Sobel vertical and horizontal filtering. The function is shown above. Outputs are almost the same as those from the in-built \texttt{filter2D} function .(Figure 8)
+
+        \end{itemize}
+    \begin{figure}[H]
+        \centering
+        \includegraphics[width=0.4\linewidth]{outputg.png}
+        \caption{}
+        \label{fig:single-image}
+    \end{figure}
+    
+\begin{itemize}
+
+    
+       \item Sobel filtering was carried out using the associative property. First, the image is filtered with $[-1, 0, 1]^T$ for vertical filtering, and then with $[1, 2, 1]$ for horizontal filtering. Transposes of the above matrices are applied for horizontal filtering. Again, the results are consistent with those from the in-built function.(Figure 8)
+    \end{itemize}
+\begin{lstlisting}
+kernel_1 = np.array(((-1,), (0,), (1,)))
+kernel_2 = np.array((1, 2, 1))
+output_1 = cv.filter2D(einstein_img, cv.CV_64F, kernel_1)
+output_1 = cv.filter2D(output_1, cv.CV_64F, kernel_2)
+output_2 = cv.filter2D(einstein_img, cv.CV_64F, kernel_1.T)
+output_2 = cv.filter2D(output_2, cv.CV_64F, kernel_2.T)
+\end{lstlisting}
+\hfill%
+\begin{minipage}[t]{0.45\textwidth}
+    
+\end{minipage}
+\section*{Question 8}
+
+For the Nearest-Neighborhood Method, Normalized SSD value is 31.28431, and for the bilinear interpolation method, Normalized SSD value is 23.78219.
+
+\begin{lstlisting}
+    def image_zooming(image,zooming_factor):
+        height,width,chanels = image.shape
+        zoomed_height = int(height*zooming_factor) 
+        zoomed_width = int(width*zooming_factor)
+        zoomed_image = np.zeros((zoomed_height,zoomed_width,chanels),dtype=np.uint8)
+        for i in range(zoomed_height):
+            for j in range(zoomed_width):
+                x = int(i/zooming_factor)
+                y = int(j/zooming_factor)
+                zoomed_image[i,j] = image[x,y]
+        return zoomed_image
+\end{lstlisting}
+
+\begin{lstlisting}
+    def Bilinear_interpolation(image, zoom_factor):
+        # Get the dimensions of the image
+        height, width, channels = image.shape
+        # Calculate the new dimensions
+        new_height = int(height * zoom_factor) - 1
+        new_width = int(width * zoom_factor)
+        # Create a new image with the new dimensions
+        new_image = np.zeros((new_height, new_width, channels), dtype=np.uint8)
+        # Calculate the scaling factor for height and width
+        scale_height = height / new_height
+        scale_width = width / new_width
+        # Iterate through the new image and assign pixel values
+        for i in range(new_height):
+            for j in range(new_width):
+                # Calculate corresponding pixel value in the original image
+                x = i * scale_height
+                y = j * scale_width
+                
+                # Find nearest pixel values
+                x0 = int(np.floor(x))
+                x1 = min(x0 + 1, height - 1)
+                y0 = int(np.floor(y))
+                y1 = min(y0 + 1, width - 1)
+                
+                # Calculate weights
+                dx = x - x0
+                dy = y - y0
+                
+                # Perform bilinear interpolation
+                new_image[i, j] = ((1 - dx) * (1 - dy) * image[x0, y0] +
+                    dx * (1 - dy) * image[x1, y0] +
+                    (1 - dx) * dy * image[x0, y1] +
+                    dx * dy * image[x1, y1]
+                )
+        return new_image
+\end{lstlisting}
+    
+
+\begin{figure}[H]
+    \centering
+    % Subfigure for the Original Image L Channel Histogram
+    \begin{subfigure}[b]{0.7\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{outputyu.png}
+        \caption{Nearest Neighborhood Method}
+        \label{fig:original_L}
+    \end{subfigure}
+    \hfill
+    % Subfigure for the Gamma-Corrected Image L Channel Histogram
+    \begin{subfigure}[b]{0.7\textwidth}
+        \centering
+        \includegraphics[width=\textwidth]{outputyu1.png}
+        \caption{Bilinear Interpolation Method}
+        \label{fig:corrected_L}
+    \end{subfigure}
+\end{figure}
+\section*{Question 9}
+The enhanced image is produced by blending the foreground image with a Gaussian-blurred background. In this process, the blurred pixels from the background merge with the high-contrast pixels at the flower's edges. This blending causes the transition from the flower's edge to the background to become smoother and less defined. As a result, the transition area appears darker in the enhanced image. However, reducing the kernel size of the Gaussian blur lessens the intensity of this darkening effect, causing the darker regions to gradually fade away.
+
+\begin{lstlisting}
+img_orig = cv.imread('new_flower.png', cv.IMREAD_COLOR)
+# Create a mask and foreground, background models to initialize GrabCut algorithm
+mask = np.zeros(img_orig.shape[:2], np.uint8)
+foreground_model = np.zeros((1, 65), np.float64)
+background_model = np.zeros((1, 65), np.float64)
+rect = (50, 50, img_orig.shape[1] - 50, img_orig.shape[0] - 50)                     
+cv.grabCut(img_orig, mask, rect, background_model, foreground_model, 5, 
+    cv.GC_INIT_WITH_RECT)   # Apply Grabcut algorithm
+new_mask = np.where((mask == 2) | (mask == 0), 0, 1).astype('uint8')                            # Modify the mask
+# Extract the foreground and background images
+foreground_img = img_orig * new_mask[:, :, np.newaxis]
+background_img = img_orig * (1 - new_mask[:, :, np.newaxis])
+background_blurred_img = cv.GaussianBlur(background_img, (21, 21), 0)                           # Apply Gaussian blur to the background
+enhanced_img = foreground_img + background_blurred_img    
+\end{lstlisting}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.9\linewidth]{outputdfhh.png}
+    \caption{}
+    \label{fig:enter-label}
+\end{figure}
+\end{document}
