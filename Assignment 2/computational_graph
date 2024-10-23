@@ -1,0 +1,11 @@
+digraph {
+	x [label="Input x"]
+	z [label="z = w1 * x + b1"]
+	h [label="h = sigmoid(z)"]
+	y_hat [label="ŷ = w2 * h + b2"]
+	L [label="Loss L = 0.5 * (ŷ - y)^2"]
+	x -> z
+	z -> h
+	h -> y_hat
+	y_hat -> L
+}
